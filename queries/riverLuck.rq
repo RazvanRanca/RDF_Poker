@@ -1,0 +1,34 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX poker_schema: <http://homepages.inf.ed.ac.uk/s0954584/poker-schema.xml/#>
+
+SELECT ?hh ?wn
+WHERE
+  { ?d rdf:type poker_schema:Deal .                 #all deals
+    ?d poker_schema:player1 ?f .                    #the first player
+    ?d poker_schema:player2 ?s .                    #the second player
+    ?d rdf:_1 ?fbr .                                #the first betting round
+    ?fbr poker_schema:before_betting_round* ?br .   #all betting rounds
+    ?br poker_schema:betting_stage "River" .        #restrict to betting rounds at the "River" stage
+    ?prevBr poker_schema:before_betting_round ?br . #the previous betting rounf
+
+    { ?d poker_schema:winner ?f .                   #first subset, restrict to the winner being the first player
+      ?br poker_schema:win_prob_P1 ?p1 .            #the probability p1 has of winning
+      ?br poker_schema:win_prob_P2 ?p2 .            #the probability p2 has of winning
+      ?prevBr poker_schema:win_prob_P1 ?prevP1 .    #the probability p1 had of winning in the previous round
+      ?prevBr poker_schema:win_prob_P2 ?prevP2 .    #the probability p2 had of winning in the previous round
+      FILTER (?p1 > ?p2) .                  #retain cases where p1 was losing in the prev round, but is winning now
+      FILTER (?prevP1 < ?prevP2) } 
+    UNION
+    { ?d poker_schema:winner ?s .                   #second subset, same as above only for p2 winning instead of p1
+      ?br poker_schema:win_prob_P1 ?p1 .
+      ?br poker_schema:win_prob_P2 ?p2 .
+      ?prevBr poker_schema:win_prob_P1 ?prevP1 .
+      ?prevBr poker_schema:win_prob_P2 ?prevP2 .
+      FILTER (?p2 > ?p1) .
+      FILTER (?prevP2 < ?prevP1)} 
+    ?d poker_schema:winner ?w .                     #the winner
+    ?w poker_schema:played_by ?wn .                 #the winner's name
+    ?d rdfs:comment ?hh .                           #the hand history
+    }
+LIMIT 10

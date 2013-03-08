@@ -1,0 +1,18 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX poker_terms: <http://dbpedia.org/resource/Glossary_of_poker_terms#>
+PREFIX poker_schema: <http://homepages.inf.ed.ac.uk/s0954584/poker-schema.xml/#>
+
+SELECT ?pn (COUNT(?act) as ?noActs)
+WHERE
+  { ?brs poker_schema:betting_stage "River" .           #all betting rounds at the final stage (i.e the "River")
+    ?brs poker_schema:before_bet+ ?bet .                #all bets after the initial one
+    OPTIONAL {?bet poker_schema:before_bet ?nextBet} .  #hold only the bets that are last in the chain(i.e. they have no "nextBet")
+    FILTER ( !BOUND(?nextBet) ) . 
+    ?bet poker_terms:act ?act .                         #act performed on the final bet
+    ?act poker_schema:action_type ?actType .            #type of act
+    FILTER (?actType != "f") .                          #retain only those acts which weren't folds
+    ?act poker_schema:acting_player ?bp .               #the player making the act
+    ?bp poker_schema:played_by ?pn .                    #the player's name
+  }
+GROUP BY ?pn

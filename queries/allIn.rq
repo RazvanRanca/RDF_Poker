@@ -1,0 +1,21 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX poker_terms: <http://dbpedia.org/resource/Glossary_of_poker_terms#>
+PREFIX poker_schema: <http://homepages.inf.ed.ac.uk/s0954584/poker-schema.xml/#>
+
+SELECT ?hh ?pn
+WHERE
+  { ?d rdf:type poker_schema:Deal .               #all deals
+    ?d poker_terms:stack ?stack .                 #stack size for deal
+    ?d rdf:_1 ?fbr .                              #first betting round
+    ?fbr poker_schema:before_betting_round* ?br . #all betting rounds
+    ?br poker_schema:before_bet* ?bet .           #all bets in all betting rounds
+    ?bet poker_terms:act ?act .                   #the act corresponding to each bet
+    ?act poker_schema:action_type "r" .           #restrict to acts which are raises
+    ?act rdf:value ?stack .                       #restrict to raises to are for the full stack (i.e. "all-in" raises)
+    ?act poker_schema:acting_player ?p .          #the player who went all in
+    ?p poker_schema:played_by ?pn .               #the name of this player
+    ?d rdfs:comment ?hh .                         #the hand history, for display purposes
+  }
+LIMIT 10
+

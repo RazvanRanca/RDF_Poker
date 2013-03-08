@@ -1,0 +1,20 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX poker_terms: <http://dbpedia.org/resource/Glossary_of_poker_terms#>
+PREFIX poker_schema: <http://homepages.inf.ed.ac.uk/s0954584/poker-schema.xml/#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+CONSTRUCT {?d poker_schema:p1Lucky ?luck}
+WHERE {
+  SELECT ?d ((xsd:integer(?vp1)-xsd:integer(?vp2)) AS ?luck)  #select the deal and the difference between hand strength as "luck"
+  WHERE
+    { ?d rdf:type poker_schema:Deal .                #all deals
+      ?d rdf:_1 ?fbr .                               #first betting round
+      ?fbr poker_schema:before_betting_round* ?br .  #all betting rounds
+      ?br poker_schema:betting_stage "Flop" .        #restrict to betting rounds in "Flop" stage
+      ?br poker_schema:cur_hand_P1 ?hp1 .            #first player's hand
+      ?br poker_schema:cur_hand_P2 ?hp2 .            #second player's hand
+      ?hp1 rdf:value ?vp1 .                          #the hand strengths of each player
+      ?hp2 rdf:value ?vp2 .
+    }
+}

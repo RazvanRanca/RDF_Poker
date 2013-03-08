@@ -1,0 +1,30 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX poker_terms: <http://dbpedia.org/resource/Glossary_of_poker_terms#>
+PREFIX poker_schema: <http://homepages.inf.ed.ac.uk/s0954584/poker-schema.xml/#>
+
+SELECT ?pn
+WHERE
+  { ?br poker_schema:betting_stage "Flop" .                     #all betting rounds at the "Flop" stage
+    ?br poker_schema:before_bet* ?bet .                         #all bets in betting rounds on the "Flop"
+    ?bet poker_schema:bets_cur_round 0 .                        #restrict to bets that were first in their betting round
+    ?bet <http://dbpedia.org/resource/Pot_(poker)> ?p .         #the pot amount at the type of the bet
+    ?bet poker_terms:act ?act .                                 #the betting action taken
+    ?act rdf:value ?betVal .                                    #the amount bet 
+    ?act poker_schema:acting_player ?bp .                       #the player making the bet
+    ?bp poker_schema:played_by ?pn .                            #the player's name
+    ?bp rdf:_1 ?pc1 .                                           #the betting player's cards
+    ?bp rdf:_2 ?pc2 .                
+    ?pc1 poker_schema:card_suit ?ps1 .                          #the suit of the betting player's cards
+    ?pc2 poker_schema:card_suit ?ps2 .
+    ?bet poker_terms:community_card ?cc .                       #the available community cards
+    ?cc rdf:_1 ?cc0 .
+    ?cc rdf:_2 ?cc1 .
+    ?cc rdf:_3 ?cc2 .
+    ?cc0 poker_schema:card_suit ?cs0 .                          #the suits of the community cards
+    ?cc1 poker_schema:card_suit ?cs0 .
+    ?cc2 poker_schema:card_suit ?cs0 .
+    FILTER(!(sameTerm(?ps1,?cs0) || sameTerm(?ps2,?cs0)))       #retain situations where the player cards suits were different from the community cards suits
+    FILTER(?betVal > ?p)                                        #retain situations where the player bet a large amount(more than the previous pot)
+    }
+LIMIT 10

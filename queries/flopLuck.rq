@@ -1,0 +1,18 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX poker_terms: <http://dbpedia.org/resource/Glossary_of_poker_terms#>
+PREFIX poker_schema: <http://homepages.inf.ed.ac.uk/s0954584/poker-schema.xml/#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT (SUM(?p1Won) AS ?p1Wins) (SUM(?p2Won) AS ?p2Wins) ?p1Luck 
+WHERE {
+  SELECT (xsd:integer(?w=?p1) AS ?p1Won) (xsd:integer(?w=?p2) AS ?p2Won) ?p1Luck #p1Won holds 1 if player1 won and 0 otherwise, p2Won does the same for player2
+  WHERE { ?d rdf:type poker_schema:Deal .    #all deals
+          ?d poker_schema:p1Lucky ?p1Luck .  #the previously computed "luck"
+          ?d poker_schema:winner ?w .        #the winner
+          ?d poker_schema:player1 ?p1 .      #the first player
+          ?d poker_schema:player2 ?p2        #the second player
+  }
+}
+GROUP BY ?p1Luck                             #group by "luck"
+ORDER BY DESC(?p1Luck)                       #order by descending "luck"

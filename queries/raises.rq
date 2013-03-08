@@ -1,0 +1,19 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX poker_terms: <http://dbpedia.org/resource/Glossary_of_poker_terms#>
+PREFIX poker_schema: <http://homepages.inf.ed.ac.uk/s0954584/poker-schema.xml/#>
+
+SELECT ?hh (COUNT (?act) as ?noRaises)
+WHERE
+  { ?d rdf:type poker_schema:Deal .                #all deals
+    ?d rdfs:comment ?hh .                          #the hand history
+    ?d rdf:_1 ?fbr .                               #first betting round
+    ?fbr poker_schema:before_betting_round* ?br .  #all betting rounds
+    ?br poker_schema:before_bet* ?bets .           #all bets in all betting rounds
+    ?bets poker_terms:act ?act .                   #acts corresponding to all bets
+    ?act poker_schema:action_type "r" .            #restrict to acts that are raises
+  }
+GROUP BY ?hh                                       #group by the hand history, which is unique for every deal
+HAVING (?noRaises > 7)                             #limit to those with more than 7 raises
+ORDER BY DESC(?noRaises)                           #show raises in descending order
+

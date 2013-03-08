@@ -1,0 +1,15 @@
+PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>
+PREFIX dbpprop: <http://dbpedia.org/property/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX poker_schema: <http://homepages.inf.ed.ac.uk/s0954584/poker-schema.xml/#>
+
+SELECT DISTINCT ?player ?birthDate ?wsopBestPlace
+WHERE
+  { ?p1 poker_schema:played_by ?sn .                                  #get the surnames of both players
+    SERVICE <http://dbpedia.org/sparql>                               #use the dbpedia sparql endpoint
+      { ?player foaf:surname ?sn .                                    #all people with same surname as the players
+        ?player a dbpedia-owl:PokerPlayer .                           #restrict to poker players
+        ?player dbpedia-owl:birthDate ?birthDate .                    #birthdates of the players
+        ?player dbpprop:wsopMainEventBestFinishRank ?wsopBestPlace .  #their best rankinh in the World Series of Poker
+      }
+  }
